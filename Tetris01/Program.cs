@@ -16,6 +16,8 @@ namespace Tetris01
         private static Type peiceType; 
         private static Tuple<int,int> peicePos;
         private static Orientation peiceOr;
+        private static Tuple<int, int> pieceBox;
+
         static void Main(string[] args)
         {
             //lets program it right here XD
@@ -34,18 +36,29 @@ namespace Tetris01
             }
             grid[15, 0] = true;
             grid[15, 4] = true;
-            grid[15, 5] = true;
+            grid[15, 5] = false;
            // peicePos = new Tuple<int, int>(peicePos.Item1 + 1, peicePos.Item2);
+           
             InsertPeice();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
             peiceOr = Orientation.RRFL;
             Console.Clear();
             InsertPeice();
+            moveDown();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
+            while (moveDown())
+            {
+                peiceOr = Orientation.RRFL;
+                Console.Clear();
+                InsertPeice();
+                moveDown();
+                Output();
+                Console.ReadKey();
+            }
 
             Console.Clear();
             peiceType = Type.J;
@@ -53,13 +66,14 @@ namespace Tetris01
             InsertPeice();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
             peiceOr = Orientation.RRFL;
             Console.Clear();
             InsertPeice();
+            moveDown();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
 
             Console.Clear();
             peiceType = Type.L;
@@ -67,13 +81,14 @@ namespace Tetris01
             InsertPeice();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
             peiceOr = Orientation.RRFL;
             Console.Clear();
             InsertPeice();
+            moveDown();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
 
             Console.Clear();
             peiceType = Type.O;
@@ -81,13 +96,14 @@ namespace Tetris01
             InsertPeice();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
             peiceOr = Orientation.RRFL;
             Console.Clear();
             InsertPeice();
+            moveDown();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
 
             Console.Clear();
             peiceType = Type.S;
@@ -95,15 +111,28 @@ namespace Tetris01
             InsertPeice();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
             peiceOr = Orientation.RRFL;
             Console.Clear();
             InsertPeice();
+            moveDown();
             Output();
             Console.ReadKey();
-            RomovePeice();
+            RemovePeice();
         }
-        static void InsertPeice(bool b = true)
+        static bool moveDown()
+        {
+            RemovePeice();
+            peicePos = new Tuple<int, int>(peicePos.Item1+1, peicePos.Item2);
+            if (InsertPeice())
+            {
+                return true;
+            }
+            peicePos = new Tuple<int, int>(peicePos.Item1-1, peicePos.Item2);
+            InsertPeice();
+            return false;
+        }
+        static bool InsertPeice(bool b = true)
         {
             int xi = 4;
             int xj = 2;
@@ -215,6 +244,8 @@ namespace Tetris01
                     }
                     break;
 
+              
+
             }
             int ii, jj;
             ii = peicePos.Item1;
@@ -224,14 +255,17 @@ namespace Tetris01
             {
                 for (int j = 0; j < xj; j++)
                 {
+                    if (grid[ii, jj] && p[i, j]) //Check collision
+                        return false; 
                     grid[ii, jj++] = p[i,j];
                 } 
                 jj = peicePos.Item2;
                 ii++;
             }
+            return true;
 
         }
-        static void RomovePeice()
+        static void RemovePeice()
         {
             InsertPeice(false);
 
