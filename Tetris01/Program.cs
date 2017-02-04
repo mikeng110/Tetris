@@ -8,6 +8,7 @@ namespace Tetris01
 {
     enum Type {I, J, L, O, S};
     enum Orientation {PUPFP, RRFL}
+    enum Mode {INSERT, REMOVE};
     class Program
     {
         private static int HEIGHT = 16;
@@ -23,10 +24,9 @@ namespace Tetris01
             //lets program it right here XD
             //grid size 10x16
             grid = new bool[HEIGHT, WIDTH];
-            peicePos = new Tuple<int, int>(0,4);
+            
            
-            peiceType = Type.I;
-            peiceOr = Orientation.PUPFP;
+           
             for (int i = 0; i < HEIGHT; i++)
             {
                 for(int j = 0; j < WIDTH; j++)
@@ -36,91 +36,36 @@ namespace Tetris01
             }
             grid[15, 0] = true;
             grid[15, 4] = true;
-            grid[15, 5] = false;
-           // peicePos = new Tuple<int, int>(peicePos.Item1 + 1, peicePos.Item2);
-           
-            InsertPeice();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
+            grid[14, 4] = true;
+            grid[13, 4] = true;
+            grid[12, 4] = true;
+            grid[11, 4] = true;
+            grid[15, 5] = true;
+            // peicePos = new Tuple<int, int>(peicePos.Item1 + 1, peicePos.Item2);
+            peicePos = new Tuple<int, int>(0, 5);
+            peiceType = Type.I;
+           // peiceOr = Orientation.PUPFP;
             peiceOr = Orientation.RRFL;
-            Console.Clear();
             InsertPeice();
-            moveDown();
             Output();
-            Console.ReadKey();
-            RemovePeice();
-            while (moveDown())
+            while (true)
             {
-                peiceOr = Orientation.RRFL;
-                Console.Clear();
-                InsertPeice();
-                moveDown();
-                Output();
-                Console.ReadKey();
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.DownArrow:
+                        MoveDown();
+                        Console.Clear();
+                        Output();
+                        break;
+                    case ConsoleKey.UpArrow:
+                        MoveUp();
+                        Console.Clear();
+                        Output();
+                        break;
+                }
             }
-
-            Console.Clear();
-            peiceType = Type.J;
-            peiceOr = Orientation.PUPFP;
-            InsertPeice();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-            peiceOr = Orientation.RRFL;
-            Console.Clear();
-            InsertPeice();
-            moveDown();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-
-            Console.Clear();
-            peiceType = Type.L;
-            peiceOr = Orientation.PUPFP;
-            InsertPeice();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-            peiceOr = Orientation.RRFL;
-            Console.Clear();
-            InsertPeice();
-            moveDown();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-
-            Console.Clear();
-            peiceType = Type.O;
-            peiceOr = Orientation.PUPFP;
-            InsertPeice();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-            peiceOr = Orientation.RRFL;
-            Console.Clear();
-            InsertPeice();
-            moveDown();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-
-            Console.Clear();
-            peiceType = Type.S;
-            peiceOr = Orientation.PUPFP;
-            InsertPeice();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
-            peiceOr = Orientation.RRFL;
-            Console.Clear();
-            InsertPeice();
-            moveDown();
-            Output();
-            Console.ReadKey();
-            RemovePeice();
         }
-        static bool moveDown()
+        static bool MoveDown()
         {
             RemovePeice();
             peicePos = new Tuple<int, int>(peicePos.Item1+1, peicePos.Item2);
@@ -132,35 +77,83 @@ namespace Tetris01
             InsertPeice();
             return false;
         }
-        static bool InsertPeice(bool b = true)
+        static bool MoveUp()
+        {
+            RemovePeice();
+            peicePos = new Tuple<int, int>(peicePos.Item1 - 1, peicePos.Item2);
+            if (InsertPeice())
+            {
+                return true;
+            }
+            peicePos = new Tuple<int, int>(peicePos.Item1 + 1, peicePos.Item2);
+            InsertPeice();
+            return false;
+        }
+        static bool InsertPeice(Mode mode = Mode.INSERT)
         {
             int xi = 4;
             int xj = 2;
             var p = new bool[0, 0];
+            var tempGrid = grid;
+            int ii, jj;
+            
+            GenPeice(out p, peiceType, peiceOr);
+            ii = peicePos.Item1;
+            jj = peicePos.Item2;
 
+            for (int i = 0; i < xi; i++)
+            {
+                for (int j = 0; j < xj; j++)
+                {
+                    if (!p[i, j]) continue; //Empty square has no effect on filled square.
+
+                    if (grid[ii, jj] && p[i, j]) //New position already contains a filled square.
+                    {
+                        if (mode == Mode.INSERT)
+                            return false;
+                        if (mode == Mode.REMOVE)
+                            tempGrid[ii, jj++] = false;
+                    }
+                    else
+                    {
+                        tempGrid[ii, jj++] = p[i, j];
+                    }
+                } 
+                jj = peicePos.Item2;
+                ii++;
+            }
+            grid = tempGrid;
+            
+            return true;
+        }
+
+        static void GenPeice(out bool [,] peice, Type type, Orientation orientation)
+        {
+            int xi, xj;
+            var p = new bool[0, 0];
             switch (peiceType)
             {
                 case Type.I:
-                    
+
                     if (peiceOr == Orientation.PUPFP)
                     {
                         xi = 2;
                         xj = 4;
                         p = new bool[xi, xj];
-                        p[0, 0] = b;
-                        p[0, 1] = b;
-                        p[0, 2] = b;
-                        p[0, 3] = b;
+                        p[0, 0] = true;
+                        p[0, 1] = true;
+                        p[0, 2] = true;
+                        p[0, 3] = true;
                     }
                     else if (peiceOr == Orientation.RRFL)
                     {
                         xi = 4;
                         xj = 2;
                         p = new bool[xi, xj];
-                        p[0, 1] = b;
-                        p[1, 1] = b;
-                        p[2, 1] = b;
-                        p[3, 1] = b;
+                        p[0, 1] = true;
+                        p[1, 1] = true;
+                        p[2, 1] = true;
+                        p[3, 1] = true;
                     }
                     break;
                 case Type.J:
@@ -170,20 +163,20 @@ namespace Tetris01
                         xi = 2;
                         xj = 4;
                         p = new bool[xi, xj];
-                        p[0, 0] = b;
-                        p[1, 0] = b;
-                        p[1, 1] = b;
-                        p[1, 2] = b;
+                        p[0, 0] = true;
+                        p[1, 0] = true;
+                        p[1, 1] = true;
+                        p[1, 2] = true;
                     }
                     else if (peiceOr == Orientation.RRFL)
                     {
                         xi = 4;
                         xj = 2;
                         p = new bool[xi, xj];
-                        p[0, 0] = b;
-                        p[0, 1] = b;
-                        p[1, 0] = b;
-                        p[2, 0] = b;
+                        p[0, 0] = true;
+                        p[0, 1] = true;
+                        p[1, 0] = true;
+                        p[2, 0] = true;
                     }
                     break;
                 case Type.L:
@@ -193,20 +186,20 @@ namespace Tetris01
                         xi = 2;
                         xj = 4;
                         p = new bool[xi, xj];
-                        p[0, 3] = b;
-                        p[1, 1] = b;
-                        p[1, 2] = b;
-                        p[1, 3] = b;
+                        p[0, 3] = true;
+                        p[1, 1] = true;
+                        p[1, 2] = true;
+                        p[1, 3] = true;
                     }
                     else if (peiceOr == Orientation.RRFL)
                     {
                         xi = 4;
                         xj = 2;
                         p = new bool[xi, xj];
-                        p[0, 0] = b;
-                        p[1, 0] = b;
-                        p[2, 0] = b;
-                        p[2, 1] = b;
+                        p[0, 0] = true;
+                        p[1, 0] = true;
+                        p[2, 0] = true;
+                        p[2, 1] = true;
                     }
                     break;
                 case Type.O:
@@ -214,10 +207,10 @@ namespace Tetris01
                     xi = 2;
                     xj = 4;
                     p = new bool[xi, xj];
-                    p[0, 0] = b;
-                    p[0, 1] = b;
-                    p[1, 0] = b;
-                    p[1, 1] = b;
+                    p[0, 0] = true;
+                    p[0, 1] = true;
+                    p[1, 0] = true;
+                    p[1, 1] = true;
 
                     break;
                 case Type.S:
@@ -227,47 +220,28 @@ namespace Tetris01
                         xi = 2;
                         xj = 4;
                         p = new bool[xi, xj];
-                        p[0, 1] = b;
-                        p[0, 2] = b;
-                        p[1, 0] = b;
-                        p[1, 1] = b;
+                        p[0, 1] = true;
+                        p[0, 2] = true;
+                        p[1, 0] = true;
+                        p[1, 1] = true;
                     }
                     else if (peiceOr == Orientation.RRFL)
                     {
                         xi = 4;
                         xj = 2;
                         p = new bool[xi, xj];
-                        p[0, 0] = b;
-                        p[1, 0] = b;
-                        p[1, 1] = b;
-                        p[2, 1] = b;
+                        p[0, 0] = true;
+                        p[1, 0] = true;
+                        p[1, 1] = true;
+                        p[2, 1] = true;
                     }
                     break;
-
-              
-
             }
-            int ii, jj;
-            ii = peicePos.Item1;
-            jj = peicePos.Item2;
-            
-            for (int i = 0; i < xi; i++)
-            {
-                for (int j = 0; j < xj; j++)
-                {
-                    if (grid[ii, jj] && p[i, j]) //Check collision
-                        return false; 
-                    grid[ii, jj++] = p[i,j];
-                } 
-                jj = peicePos.Item2;
-                ii++;
-            }
-            return true;
-
-        }
+            peice = p;
+        }  
         static void RemovePeice()
         {
-            InsertPeice(false);
+            InsertPeice(Mode.REMOVE);
 
         }
         static bool IsRowFilled(int r)
@@ -277,8 +251,7 @@ namespace Tetris01
                 if (!grid[r, i])
                 {
                     return false;
-                }
-                    
+                }     
             }
             return true;
         }
